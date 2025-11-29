@@ -1,0 +1,34 @@
+# Android / IntelliJ
+*.iml
+.idea/
+.gradle/
+local.properties
+.DS_Store
+
+# Builds
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Logs / databases
+*.log
+**/*.db
+**/*.sqlite
+**/skillorbit.db
+
+# Keystores / secrets
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+
+# Misc
+*.apk
+*.aab
+
+# Keep Gradle wrapper tracked
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+

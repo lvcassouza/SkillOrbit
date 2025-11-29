@@ -30,13 +30,14 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -76,8 +77,8 @@ fun SkillOrbitApp(viewModel: CourseViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(viewModel: CourseViewModel, onLoggedIn: () -> Unit) {
-    val state = viewModel.state
-    val userName = androidx.compose.runtime.collectAsState(state).value.userName
+    val uiState by viewModel.state.collectAsState()
+    val userName = uiState.userName
     LaunchedEffect(userName) {
         if (userName.isNotBlank()) onLoggedIn()
     }
@@ -98,7 +99,7 @@ fun LoginScreen(viewModel: CourseViewModel, onLoggedIn: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(viewModel: CourseViewModel, onCourseClick: (Long) -> Unit) {
-    val state = androidx.compose.runtime.collectAsState(viewModel.state).value
+    val state by viewModel.state.collectAsState()
     val progressAnim by animateFloatAsState(targetValue = state.overallProgress, label = "overall")
     Scaffold(
         topBar = { TopAppBar(title = { Text(text = "Olá, ${state.userName}") }) },
@@ -111,9 +112,10 @@ fun DashboardScreen(viewModel: CourseViewModel, onCourseClick: (Long) -> Unit) {
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             Text(text = "Progresso geral")
             LinearProgressIndicator(progress = progressAnim, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
-            if (state.suggestion != null) {
+            val suggestion = state.suggestion
+            suggestion?.let {
                 Card(colors = CardDefaults.cardColors(), modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    Text(text = state.suggestion, modifier = Modifier.padding(16.dp))
+                    Text(text = it, modifier = Modifier.padding(16.dp))
                 }
             }
             LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
@@ -128,6 +130,7 @@ fun DashboardScreen(viewModel: CourseViewModel, onCourseClick: (Long) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseItem(course: Course, onClick: () -> Unit) {
     val ratio = if (course.totalLessons > 0) course.completedLessons.toFloat() / course.totalLessons.toFloat() else 0f
@@ -168,7 +171,7 @@ fun AddCourseDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int) -> U
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDetailScreen(id: Long, viewModel: CourseViewModel, onBack: () -> Unit) {
-    val state = androidx.compose.runtime.collectAsState(viewModel.state).value
+    val state by viewModel.state.collectAsState()
     val course = state.courses.find { it.id == id }
     if (course == null) {
         Column(modifier = Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -204,4 +207,3 @@ fun CourseDetailScreen(id: Long, viewModel: CourseViewModel, onBack: () -> Unit)
         }
     }
 }
-
