@@ -17,7 +17,10 @@ data class DashboardState(
     val courses: List<Course> = emptyList(),
     val overallProgress: Float = 0f,
     val suggestion: String? = null,
-    val isAddCourseDialogOpen: Boolean = false
+    val isAddCourseDialogOpen: Boolean = false,
+    val onboardingCompleted: Boolean = false,
+    val notificationsEnabled: Boolean = true,
+    val themeMode: String = "SYSTEM" // SYSTEM, LIGHT, DARK
 )
 
 class CourseViewModel(private val repository: CourseRepository) : ViewModel() {
@@ -26,7 +29,13 @@ class CourseViewModel(private val repository: CourseRepository) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            combine(repository.userNameFlow, repository.coursesFlow) { name, courses ->
+            combine(
+                repository.userNameFlow,
+                repository.coursesFlow,
+                repository.onboardingCompletedFlow,
+                repository.notificationsEnabledFlow,
+                repository.themeModeFlow
+            ) { name, courses, onboarded, notifications, theme ->
                 val safeName = name ?: ""
                 val progress = calculateOverallProgress(courses)
                 val suggestion = buildSuggestion(courses)
@@ -35,7 +44,10 @@ class CourseViewModel(private val repository: CourseRepository) : ViewModel() {
                     courses = courses,
                     overallProgress = progress,
                     suggestion = suggestion,
-                    isAddCourseDialogOpen = _state.value.isAddCourseDialogOpen
+                    isAddCourseDialogOpen = _state.value.isAddCourseDialogOpen,
+                    onboardingCompleted = onboarded,
+                    notificationsEnabled = notifications,
+                    themeMode = theme
                 )
             }.collect { _state.value = it }
         }
@@ -83,6 +95,20 @@ class CourseViewModel(private val repository: CourseRepository) : ViewModel() {
         }
     }
 
+    fun deleteCourse(id: Long): Course? {
+        var deleted: Course? = null
+        viewModelScope.launch {
+            val current = repository.getById(id) ?: return@launch
+            deleted = current
+            repository.delete(current)
+        }
+        return deleted
+    }
+
+    fun restoreCourse(course: Course) {
+        viewModelScope.launch { repository.insert(course) }
+    }
+
     private fun calculateOverallProgress(courses: List<Course>): Float {
         if (courses.isEmpty()) return 0f
         val ratios = courses.mapNotNull { c ->
@@ -98,6 +124,18 @@ class CourseViewModel(private val repository: CourseRepository) : ViewModel() {
         val uiuxCount = courses.count { it.category.contains("UI/UX", ignoreCase = true) || it.category.contains("UI", ignoreCase = true) || it.category.contains("UX", ignoreCase = true) }
         return if (backendCount >= 2 && frontendCount == 0 && uiuxCount == 0) "Que tal explorar UI/UX?" else null
     }
+
+    fun completeOnboarding() {
+        viewModelScope.launch { repository.completeOnboarding() }
+    }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setNotificationsEnabled(enabled) }
+    }
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch { repository.setThemeMode(mode) }
+    }
 }
 
 class CourseViewModelFactory(private val repository: CourseRepository) : ViewModelProvider.Factory {
@@ -109,4 +147,3 @@ class CourseViewModelFactory(private val repository: CourseRepository) : ViewMod
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-

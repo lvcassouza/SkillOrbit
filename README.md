@@ -11,6 +11,11 @@ Aplicativo nativo Android para acompanhar estudos com um Dashboard simples e efi
 - Navigation Compose
 - Material Icons Extended
 
+## Requisitos
+- Android Studio (versão atual) com JDK 17
+- Android SDK `compileSdk 34`, `targetSdk 34`, `minSdk 24`
+- Gradle via `gradlew` (wrapper incluso no projeto)
+
 ## Estrutura do Projeto
 - `app/src/main/java/com/skillorbit/data/`
   - `CourseEntity.kt`: Entidade Room e enum `CourseStatus`
@@ -31,6 +36,8 @@ Aplicativo nativo Android para acompanhar estudos com um Dashboard simples e efi
   - Saudação: "Olá, {Nome do Usuário}"
   - Barra de progresso geral animada (média dos cursos)
   - Lista de cursos com progresso individual e categoria
+  - Filtro por categoria e ordenação por Título/Progresso/Categoria
+  - Swipe para excluir com Undo via SnackBar
   - FAB para adicionar novo curso
 - Detalhes do curso: editar aulas concluídas e anotações com atualização do progresso em tempo real
 - Sugestão (especial): se houver muitos cursos de Backend e nenhum de Frontend/UI/UX, exibir card "Que tal explorar UI/UX?"
@@ -76,40 +83,52 @@ Aplicativo nativo Android para acompanhar estudos com um Dashboard simples e efi
 - `CourseDetailScreen`: edição com `OutlinedTextField` e feedback visual
 
 ## Configuração do Projeto (Gradle)
-Adicione as dependências no `build.gradle` do módulo (versões meramente exemplificativas; ajuste para as mais recentes):
+Principais versões em uso no módulo `app`:
 
 ```gradle
-plugins {
-    id "com.android.application"
-    id "org.jetbrains.kotlin.android"
-    id "kotlin-kapt"
-}
-
 android {
+    compileSdk 34
+    defaultConfig { minSdk 24; targetSdk 34 }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose true }
-    composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
+    composeOptions { kotlinCompilerExtensionVersion "1.5.14" }
 }
 
 dependencies {
     implementation "androidx.compose.ui:ui:1.7.0"
     implementation "androidx.compose.material3:material3:1.3.0"
-    implementation "androidx.compose.material:material-icons-extended:1.7.0"
-
     implementation "androidx.navigation:navigation-compose:2.8.0"
-
     implementation "androidx.room:room-runtime:2.6.1"
     implementation "androidx.room:room-ktx:2.6.1"
     kapt "androidx.room:room-compiler:2.6.1"
-
     implementation "androidx.datastore:datastore-preferences:1.1.1"
 }
 ```
 
+No `build.gradle` de nível de projeto:
+
+```gradle
+classpath 'com.android.tools.build:gradle:8.12.3'
+classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24"
+```
+
 ## Como executar
-1. Abra no Android Studio (Koala ou superior)
+1. Abra no Android Studio (com JDK 17 configurado)
 2. Sincronize Gradle e aguarde o indexamento
 3. Rode no emulador/dispositivo
-4. Na primeira execução, informe o nome do usuário; depois será redirecionado ao Dashboard
+4. Primeira execução: informe o nome do usuário; depois será redirecionado ao Dashboard
+
+## Comandos úteis
+- `./gradlew assembleDebug`: compila APK de debug
+- `./gradlew installDebug`: instala no dispositivo conectado
+- `./gradlew assembleRelease`: gera APK de release
+- `./gradlew bundleRelease`: gera App Bundle (AAB)
+- `./gradlew lint`: verifica regras de lint do Android
+
+## Testes
+- Testes de instrumentação em `app/src/androidTest`
+- Execute em dispositivo/emulador: `./gradlew connectedAndroidTest`
 
 ## Exemplo de Uso
 - Adicionar curso: no Dashboard, toque no FAB, informe Título, Categoria (ex.: Backend), Total de aulas e confirme
@@ -117,9 +136,7 @@ dependencies {
 
 ## Próximos passos (opcional)
 - Tema claro/escuro dedicado e tipografia customizada
-- Testes de unidade/instrumentação para ViewModel e DAO
-- Filtros por categoria e ordenação
-- Swipe para excluir, undo com SnackBar
+- Testes de unidade adicionais para ViewModel
 
 ## Licença
 MIT

@@ -11,6 +11,9 @@ class CourseRepository(
 ) {
     val coursesFlow: Flow<List<Course>> = dao.getAll()
     val userNameFlow: Flow<String?> = prefs.userNameFlow
+    val onboardingCompletedFlow: Flow<Boolean> = prefs.onboardingCompletedFlow
+    val notificationsEnabledFlow: Flow<Boolean> = prefs.notificationsEnabledFlow
+    val themeModeFlow: Flow<String> = prefs.themeModeFlow
 
     suspend fun insert(course: Course): Long = dao.insert(course)
     suspend fun update(course: Course) = dao.update(course)
@@ -18,5 +21,7 @@ class CourseRepository(
     suspend fun getById(id: Long): Course? = dao.getById(id)
 
     suspend fun saveUserName(name: String) = prefs.setUserName(name)
+    suspend fun completeOnboarding() = prefs.setOnboardingCompleted(true)
+    suspend fun setNotificationsEnabled(enabled: Boolean) = prefs.setNotificationsEnabled(enabled)
+    suspend fun setThemeMode(mode: String) = prefs.setThemeMode(mode)
 }
-
